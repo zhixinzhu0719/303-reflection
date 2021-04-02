@@ -1,0 +1,103 @@
+---
+title: "My Assignment 2 Title (How tax and location and list price affect sold price in Toronto)"
+author: "zhixin zhu 1004724391"
+date: "October 24, 2020"
+output: html_document
+---
+```{r}
+knitr::opts_chunk$set(echo = F, message =  F, warning = F)
+library(knitr)
+library(tidyverse)
+```
+## I. Introduction
+The title fo this analysis is:"How tax and location and list price affect sold price in Toronto."
+This analysis is used for study how those three element influence the property price in Toronto, and also, does it exist any linear relationship between them.
+```{r}
+data1<- read.csv("real20.csv")
+set.seed(4391)
+data<-sample_n(data1, 200, replace=FALSE)
+attach(data)
+head(data)
+```
+
+## II. Exploratory Data Analysis'
+Firstly, I analyzed the data that we have collect. In order to check whether it exist outlier in this data, I make the following scatterplot graph.
+
+```{r}
+data %>% ggplot(aes(x=list, y=sold)) +ggtitle("list price and sold price plot-4391")+ geom_point()
+```
+We see two huge leverage points for list price. They are supposed to be influential points. I Will remove them and work on the data subsets without them for the rest of the analysis.
+
+```{r}
+data2 <- data %>% filter(list <6.799)
+```
+
+```{r}
+data2 <- data1 %>% mutate(location = as.factor(location))
+data2 %>% ggplot(aes(x=list, y=sold, color=location))+ggtitle("list price and sold price plot-4391") + geom_point()
+data2 %>% ggplot(aes(x=taxes, y=sold, color=location))+ggtitle("taxes and sold price plot-4391")+ geom_point()
+```
+In list price and sold price plot-4391, we see a very strong linear relationship between list price and sale price no matter in Toronto or Missisauga. Besides,it shows a few potential outliers,also, both list price and sale price in Toronto are higher than Missisauga, which means more expensive house in Toronto. In addition, Toronto property sale price more spread out than Missisauga property sale price.
+
+In taxes and sold price plot-4391, we see a moderately strong linear relationship between property tax and sale price, and taxes are roughly similar in Toronto and Missisauga.
+
+
+
+
+
+## III. Methods and Model
+ model 1
+
+```{r}
+mod1 <- lm(sold ~ list, data = data2)
+mod2 <- lm(sold ~ list, data = data[data2$location == "T",])
+mod3 <- lm(sold ~ list, data = data[data2$location == "M",])
+
+```
+
+
+```{r}
+summary(mod1)
+confint(mod1, level=0.95)
+kable(summary(mod1)$coefficients, caption="Summary how list price correlated with sold price-4391", digits=3)
+
+```
+
+```{r}
+summary(mod2)
+confint(mod2, level=0.95)
+kable(summary(mod2)$coefficients, caption="Summary how list price correlated with sold price in Toronto-4391", digits=3)
+
+```
+```{r}
+summary(mod3)
+confint(mod3, level=0.95)
+kable(summary(mod1)$coefficients, caption="Summary how list price correlated with sold price in Missisauga-4391", digits=3)
+
+``` 
+Since for the summary of model1 and model3 for this part, the R-squared value is not close to 1, those two model are not appropriate, In the model 2, which R-squared is 0.9784, this means that sold price more fit the model.
+
+## IV. Discussions and Limitations
+
+
+```{r}
+plot(mod1$fitted, mod1$residuals,  ylab="Residuals",ylim=c(-3.5,3.5),
+     main="residual plot for the fitted  of model1-4391")
+abline(h=0, lty="dashed")
+```
+this plot can help to claim that constant variance assumption is correct, independent assumption is correct, also, linear assumption is correct.
+
+```{r}
+plot(data1$list,mod1$residuals,  ylab="Residuals",ylim=c(-3.5,3.5),
+     main="residual plot for the list of data-4391")
+abline(h=0, lty="dashed")
+```
+
+```{r}
+qqnorm(mod1$residuals)
+qqline(mod1$residuals)
+```
+These three plots can help to claim that constant variance assumption for the sample is correct, independent assumption is correct, also, linear assumption is correct.In addition, we can also refer that  the normal assumption is not correct.
+
+Except the factor we consider in this analysis, some other element may
+influence the property price in Toronto, such as economy and immigration. More immigration may increase the demand for house price in a certain region, which may increase the sold price. Besides, the economy will also influence the property price, because economy will influence the purchase power, and influence the property price further.
